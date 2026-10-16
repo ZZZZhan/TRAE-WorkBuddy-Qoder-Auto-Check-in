@@ -14,8 +14,8 @@
 ## 背景
 
 - 签到脚本由 GitHub Actions 云端执行
-- Secrets：`TRAE_JWT`、`TRAE_DEVICE_ID`、`WORKBUDDY_ACCESS_TOKEN`、`WORKBUDDY_UID`
-- token 寿命：TRAE 约 7 天，WorkBuddy 约 2 个月
+- Secrets：`TRAE_JWT`、`TRAE_DEVICE_ID`、`WORKBUDDY_ACCESS_TOKEN`、`WORKBUDDY_UID`、`QODER_TOKEN`
+- token 寿命：TRAE 约 7 天，WorkBuddy 约 28 天，Qoder 约 30 天
 
 ---
 

@@ -1,37 +1,39 @@
-# TRAE & WorkBuddy 云端自动签到
+# TRAE-WorkBuddy-Qoder 自动签到
 
-## 一、这个项目是什么？
+云端自动签到 Trae、WorkBuddy 和 Qoder CN 的每日积分/credits。
 
-TraeWork 与 WorkBuddy 的云端自动签到。关掉电脑、退出应用，随时随地准时自动签到。可自行选择部署哪个应用。
+## 签到时间
 
-市面大多是 UI 签到（模拟点击客户端界面），相比前者，本项目的优势：
+| 产品 | 北京时间 | 说明 |
+|------|---------|------|
+| WorkBuddy | 10:13 | codebuddy.cn |
+| TRAE | 10:23 | api.trae.cn |
+| Qoder CN | 10:33 | openapi.qoder.com.cn |
 
-| | UI 点按签到 | 本项目云端签到 |
-|---|---|---|
-| 电脑状态 | 必须开机+解锁+客户端可点 | **关机也签** |
-| 屏幕 | 弹窗抢焦点，打断你干活 | **完全无感** |
-| 稳定性 | 界面改版/窗口失焦就失败 | API 直调，准确率接近 100% |
-| 速度 | 找控件+点按，分钟级 | 秒级完成 |
-| 消耗 | 每次签到消耗 AI 调用配额 | 纯脚本执行，正式运行零消耗 |
+每个产品另有一次下午兜底运行。
 
-## 二、工作原理是什么？
+## 文件结构
 
-签到本质是发送一个带登录态的 HTTP 请求：本地取出登录凭证，GitHub Actions 云端定时任务发送请求即可完成签到。
+```
+├── trae_checkin.py              # TRAE 签到
+├── workbuddy_checkin.py         # WorkBuddy 签到
+├── qoder_checkin.py             # Qoder CN 签到
+├── tools/
+│   ├── decrypt_trae_token.py    # TRAE token 解密（byteCrypto AES-128-CBC）
+│   └── decrypt_qoder_token.py   # Qoder token 解密（Electron safeStorage）
+├── .github/workflows/
+│   ├── trae_checkin.yml
+│   ├── workbuddy_checkin.yml
+│   └── qoder_checkin.yml
+└── GUIDE.md
+```
 
-## 三、快速开始
+## Secrets
 
-把本仓库链接丢给你的 AI，说"帮我部署"（指引文件：`GUIDE.md`）。
-
-## 四、常见问题
-
-- **为什么要注册配置 cron-job.org？**
-——作者实测 GitHub Actions 定时任务无法保证稳定触发，需借助外部定时服务。cron-job.org 是一个完全免费、安全的定时服务，邮箱注册即可免费使用
-- **会泄露我的 token 吗？**——token 只存于你 fork 仓库的 Secrets（GitHub 加密存储），部署和同步全程只经过你的电脑和 GitHub
-
-## 免责声明
-
-本项目为非官方工具，与腾讯、TRAE 无任何隶属关系。仅供学习研究客户端加密与自动化技术，接口来自客户端逆向。请自行确认使用符合相关服务的用户协议，风险自负。
-
-## License
-
-MIT
+| 名称 | 说明 |
+|------|------|
+| `TRAE_JWT` | TRAE 登录 token（约 7 天有效期） |
+| `TRAE_DEVICE_ID` | TRAE 设备指纹 ID |
+| `WORKBUDDY_ACCESS_TOKEN` | WorkBuddy JWT（约 28 天有效期） |
+| `WORKBUDDY_UID` | WorkBuddy 用户 ID |
+| `QODER_TOKEN` | Qoder CN 登录 token（约 30 天有效期） |

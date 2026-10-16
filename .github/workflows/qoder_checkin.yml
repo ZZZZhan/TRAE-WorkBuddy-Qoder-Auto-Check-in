@@ -1,0 +1,26 @@
+name: Qoder Daily Check-in
+
+# 定时触发由 cron-job.org 外部准点调用 dispatch API（GitHub 原生 schedule 高峰期会丢任务）
+on:
+  schedule:
+    - cron: '33 2 * * *'  # UTC 2:33 = 北京 10:33（错开整点高峰，Trae 10:23/WorkBuddy 10:13 之后）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qoder-checkin
+  cancel-in-progress: false
+
+jobs:
+  checkin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run Qoder check-in
+        env:
+          QODER_TOKEN: ${{ secrets.QODER_TOKEN }}
+        run: python3 qoder_checkin.py
