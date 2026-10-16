@@ -44,8 +44,8 @@ def get_headers(token):
         'x-device-id': get_device_id(),
         'x-device-brand': 'Mac',
         'x-device-type': 'macOS',
-        'x-app-version': '0.1.63',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) trae/0.1.63 Chrome/140.0.0.0 Electron/37.0.0 Safari/537.36',
+        'x-app-version': '3.4.3',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) trae/3.4.3 Chrome/140.0.0.0 Electron/37.0.0 Safari/537.36',
     }
 
 

@@ -24,7 +24,11 @@ K1 = bytes([82,9,106,213,48,54,165,56,191,64,163,158,129,243,215,251,124,227,57,
 K2 = bytes([31,221,168,51,136,7,199,49,177,18,16,89,39,128,236,95,96,81,127,169,25,181,74,13,45,229,122,159,147,201,156,239,160,224,59,77,174,42,245,176,200,235,187,60,131,83,153,97,23,43,4,126,186,119,214,38,225,105,20,99,85,33,12,125])
 
 QM, BH, IO, FV = 6, 64, 64, 32
-STORAGE = os.path.expanduser('~/Library/Application Support/TRAE SOLO CN/User/globalStorage/storage.json')
+STORAGE_CANDIDATES = [
+    # 2026-10 合并升级后新应用优先
+    os.path.expanduser('~/Library/Application Support/Trae CN/User/globalStorage/storage.json'),
+    os.path.expanduser('~/Library/Application Support/TRAE SOLO CN/User/globalStorage/storage.json'),
+]
 
 def sha512(b):
     return hashlib.sha512(b).digest()
@@ -61,7 +65,7 @@ def decrypt(b64str):
 
 
 def main():
-    storage = STORAGE
+    storage = next((p for p in STORAGE_CANDIDATES if os.path.exists(p)), STORAGE_CANDIDATES[0])
     for i, arg in enumerate(sys.argv):
         if arg == '--storage' and i + 1 < len(sys.argv):
             storage = sys.argv[i + 1]
