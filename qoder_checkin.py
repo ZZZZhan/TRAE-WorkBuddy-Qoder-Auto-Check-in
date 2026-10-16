@@ -6,6 +6,7 @@
   POST /sash/api/v1/me/campaigns/{id}/claim — 领取可签到活动
 
 认证: Bearer token（dt- 前缀，约 30 天有效期）
+注意: 必须带 Cosy-* 请求头，否则 campaigns API 返回空列表。
 幂等: 409 AlreadyExists 视为已签到；无 CLAIMABLE 活动时正常退出。
 
 用法:
@@ -14,6 +15,7 @@
 """
 import json
 import os
+import socket
 import ssl
 import sys
 import urllib.request
@@ -23,8 +25,7 @@ from datetime import datetime
 API_BASE = 'https://openapi.qoder.com.cn'
 CAMPAIGNS_PATH = '/sash/api/v1/me/campaigns'
 
-# GitHub Actions 有完整证书链；本地 macOS Homebrew Python 可能缺失根证书，
-# 创建一个兼容的 SSL context
+# GitHub Actions 有完整证书链；本地 macOS Homebrew Python 可能缺失根证书
 _ssl_ctx = ssl.create_default_context()
 try:
     import certifi
@@ -51,6 +52,10 @@ def get_headers(token):
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'User-Agent': 'Qoder',
+        'Cosy-ClientType': '10',
+        'Cosy-Version': '0.3.3',
+        'Cosy-MachineOS': 'darwin',
+        'Cosy-MachineHostname': socket.gethostname(),
     }
 
 
@@ -86,32 +91,34 @@ def main():
         return
 
     # 2. 筛选可领取的活动
-    claimable = [c for c in campaigns if c.get('claimStatus') == 'CLAIMABLE']
+    claimable = [c for c in campaigns if c.get('claimStatus') == 'CLAIMABLE' and c.get('actionType') == 'CLAIM_BENEFIT']
     if not claimable:
         claimed = [c for c in campaigns if c.get('claimStatus') == 'CLAIMED']
         if claimed:
             log(f"SKIP 今日已签到（{len(claimed)} 个活动已领取）")
         else:
-            log(f"SKIP 无可领取活动，当前活动状态: {[c.get('claimStatus') for c in campaigns]}")
+            log(f"SKIP 无可领取活动，当前活动状态: {[(c.get('campaignKey'), c.get('claimStatus')) for c in campaigns]}")
         return
 
     # 3. 逐个领取
     success_count = 0
     for camp in claimable:
-        camp_id = camp.get('campaignId') or camp.get('id')
-        camp_name = camp.get('title', camp_id)
-        log(f'领取活动: {camp_name} (id={camp_id})')
+        camp_id = camp.get('campaignId')
+        camp_key = camp.get('campaignKey', camp_id)
+        benefit = camp.get('benefit', {})
+        reward_amount = benefit.get('amount', '?')
+        log(f'领取活动: {camp_key} (id={camp_id}) 奖励 {reward_amount} credits')
 
         code, claim_result = api_call(
-            token, 'POST', f'{CAMPAIGNS_PATH}/{camp_id}/claim'
+            token, 'POST', f'{CAMPAIGNS_PATH}/{camp_id}/claim', body={}
         )
 
         if code == 200:
-            reward = claim_result.get('rewardCredits', claim_result.get('credits', '?'))
-            log(f"SUCCESS 签到成功: {camp_name}, 奖励 {reward} credits")
+            status = claim_result.get('status', 'CLAIMED')
+            log(f"SUCCESS 签到成功: {camp_key}, 奖励 {reward_amount} credits, 状态={status}")
             success_count += 1
         elif code == 409:
-            log(f"SKIP 活动已领取: {camp_name}")
+            log(f"SKIP 活动已领取: {camp_key}")
             success_count += 1
         else:
             log(f"ERROR 领取失败 HTTP {code}: {json.dumps(claim_result, ensure_ascii=False)[:200]}")
