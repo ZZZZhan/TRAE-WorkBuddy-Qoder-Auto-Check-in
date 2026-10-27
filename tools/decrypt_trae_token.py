@@ -79,7 +79,9 @@ def main():
         obj = json.loads(decrypt(v))
         if 'token' in obj:
             auth = obj
-            print(f'命中 {k}')
+            # 诊断信息必须走 stderr：--stdout 模式要输出纯净 token，
+            # 否则 "命中 ..." 会混进管道，污染写进 GitHub Secrets 的值。
+            print(f'命中 {k}', file=sys.stderr)
             break
     if not auth:
         print('ERROR 解密成功但未找到 token 字段')

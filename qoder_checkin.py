@@ -22,7 +22,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime
 
-API_BASE = 'https://openapi.qoder.com.cn'
+API_BASE = os.environ.get('QODER_API_BASE', 'https://openapi.qoder.com.cn').rstrip('/')
 CAMPAIGNS_PATH = '/sash/api/v1/me/campaigns'
 
 # GitHub Actions 有完整证书链；本地 macOS Homebrew Python 可能缺失根证书
@@ -51,10 +51,13 @@ def get_headers(token):
         'Authorization': f'Bearer {token}',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'User-Agent': 'Qoder',
-        'Cosy-ClientType': '10',
-        'Cosy-Version': '0.3.3',
-        'Cosy-MachineOS': 'darwin',
+        'User-Agent': os.environ.get('COSY_USER_AGENT', 'Qoder'),
+        # Cosy-* 必须存在，否则 campaigns API 返回空列表。默认沿用已验证可用的值
+        # （服务端只校验请求头 presence/格式，不校验其与你账号真实平台是否一致）；
+        # 若换了 API_BASE 或返回空列表，再用环境变量覆盖尝试。
+        'Cosy-ClientType': os.environ.get('COSY_CLIENT_TYPE', '10'),
+        'Cosy-Version': os.environ.get('COSY_VERSION', '0.3.3'),
+        'Cosy-MachineOS': os.environ.get('COSY_MACHINE_OS', 'darwin'),
         'Cosy-MachineHostname': socket.gethostname(),
     }
 
