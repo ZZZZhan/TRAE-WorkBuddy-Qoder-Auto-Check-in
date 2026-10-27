@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qoder CN 每日签到（云端版）。
+"""Qoder 每日签到（云端版，国际版与 CN 通用）。
 
 使用 campaigns API（自动适应活动 ID 变化）：
   GET  /sash/api/v1/me/campaigns          — 拉取活动列表
@@ -8,10 +8,12 @@
 认证: Bearer token（dt- 前缀，约 30 天有效期）
 注意: 必须带 Cosy-* 请求头，否则 campaigns API 返回空列表。
 幂等: 409 AlreadyExists 视为已签到；无 CLAIMABLE 活动时正常退出。
+域名: token 只对签发它的端点有效，跨端点会 401 TOKEN_EXPIRE，见 QODER_API_BASE。
 
 用法:
   云端: 环境变量 QODER_TOKEN=<token> python3 qoder_checkin.py
-  本地: QODER_TOKEN=$(python3 tools/decrypt_qoder_token.py --stdout) python3 qoder_checkin.py
+  本地(macOS): QODER_TOKEN=$(python3 tools/decrypt_qoder_token.py --stdout) python3 qoder_checkin.py
+  本地(Windows): QODER_TOKEN=$(python tools/decrypt_qoder_token_windows.py --stdout) python qoder_checkin.py
 """
 import json
 import os
@@ -22,7 +24,10 @@ import urllib.request
 import urllib.error
 from datetime import datetime
 
-API_BASE = os.environ.get('QODER_API_BASE', 'https://openapi.qoder.com.cn').rstrip('/')
+# 默认国际端点：客户端 auth.v1.dat 解密后的 authenticationContext 实测为
+# https://openapi.qoder.sh。Qoder CN 账号用环境变量覆盖为
+# https://openapi.qoder.com.cn 即可。
+API_BASE = os.environ.get('QODER_API_BASE', 'https://openapi.qoder.sh').rstrip('/')
 CAMPAIGNS_PATH = '/sash/api/v1/me/campaigns'
 
 # GitHub Actions 有完整证书链；本地 macOS Homebrew Python 可能缺失根证书
