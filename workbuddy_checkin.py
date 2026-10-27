@@ -7,9 +7,14 @@ import urllib.error
 import urllib.request
 from datetime import datetime
 
-API_BASE = "https://www.codebuddy.cn"
+# 实测 copilot.tencent.com / codebuddy.cn / workbuddy.cn 三个域名背后是同一套 API，
+# 默认保留 codebuddy.cn，需要时可用 WORKBUDDY_ENDPOINT 覆盖。
+API_BASE = os.environ.get("WORKBUDDY_ENDPOINT", "https://www.codebuddy.cn").rstrip("/")
 CHECKIN_URL = f"{API_BASE}/v2/billing/meter/daily-checkin"
-STATUS_URL = f"{API_BASE}/v2/billing/meter/checkin-status"
+# 用 checkin-activity-status 而不是 checkin-status：后者在 5.8.3 上返回的
+# streak_days / week_checkin_days 恒为 0（本仓库原作者的注释也提到该接口不可靠），
+# 前者才给出真实连登数据。
+STATUS_URL = f"{API_BASE}/v2/billing/meter/checkin-activity-status"
 
 
 def log(msg):
